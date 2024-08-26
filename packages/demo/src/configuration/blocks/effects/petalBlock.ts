@@ -149,18 +149,17 @@ const shaderProgram = injectDisableUniform({
                         pF = Transform(pF, angle);
                         vec2 uvF = vec2(atan(pF.x, pF.z), pF.y); // -pi<>pi, -1<>1
                         uvF *= vec2(.25,.5);
-                        float f = Leaf(uvF);
                         
-                        vec4 front = vec4(f * color, smoothstep(0., .6, f));
+                        vec4 front = texture2D(_input_, uvF) * vec4(color, 1.0);
                         
                         vec3 pB = ro + rd * (t+x) - pos;
                         n = pB.y*.5+.5;
                         pB = Transform(pB, angle);
                         vec2 uvB = vec2(atan(pB.x, pB.z), pB.y); // -pi<>pi, -1<>1
                         uvB *= vec2(.25, .5);
-                        float b = Leaf(uvB);
-                        vec4 back = vec4(b * color * 0.7, smoothstep(0., .6, b));
-                        
+
+                        vec4 back = texture2D(_input_, uvB) * vec4(color * 0.7, 1.0);
+
                         col = mix(back, front, front.a);
                     }
                     

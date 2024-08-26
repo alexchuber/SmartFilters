@@ -1,4 +1,5 @@
 import { defaultBlockEditorRegistrations } from "../../defaults/defaultBlockEditorRegistrations";
+import { PetalBlock } from "../blocks/effects/petalBlock";
 import { BlackAndWhiteAndBlurBlock } from "../blocks/effects/blackAndWhiteAndBlurBlock";
 import { BlackAndWhiteBlock } from "../blocks/effects/blackAndWhiteBlock";
 import { BlurBlock } from "../blocks/effects/blurBlock";
@@ -180,5 +181,14 @@ export const blockEditorRegistrations: IBlockEditorRegistration[] = [
         },
         category: "Effects",
         tooltip: "Alters the exposure of the input texture",
+    },
+    {
+        name: "PetalBlock",
+        factory: (smartFilter: SmartFilter) => {
+            const block = new PetalBlock(smartFilter, "Petal");
+            return block;
+        },
+        category: "Effects",
+        tooltip: "A falling leaf effect",
     },
 ];

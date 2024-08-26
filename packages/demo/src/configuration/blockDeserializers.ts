@@ -102,6 +102,11 @@ export function getBlockDeserializers(): Map<string, DeserializeBlockV1> {
         return new GlitchBlock(smartFilter, serializedBlock.name);
     });
 
+    deserializers.set(BlockNames.petal, async (smartFilter: SmartFilter, serializedBlock: ISerializedBlockV1) => {
+        const { PetalBlock } = await import(/* webpackChunkName: "glitchBlock" */ "./blocks/effects/petalBlock");
+        return new PetalBlock(smartFilter, serializedBlock.name);
+    });
+
     // Non-trivial deserializers begin.
 
     deserializers.set(BlockNames.blur, async (smartFilter: SmartFilter, serializedBlock: ISerializedBlockV1) => {

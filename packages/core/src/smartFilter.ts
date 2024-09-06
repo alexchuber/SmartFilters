@@ -167,12 +167,18 @@ export class SmartFilter {
             initializationPromises: [],
         };
 
-        this._workWithAggregateFreeGraph(() => {
+        this._workWithAggregateFreeGraph((mergedAggregateBlocks: AggregateBlock[]) => {
+            for (const block of mergedAggregateBlocks) {
+                block.prepareForRuntime();
+            }
             this.outputBlock.prepareForRuntime();
 
             renderTargetGenerator = renderTargetGenerator ?? new RenderTargetGenerator(false);
             renderTargetGenerator.setOutputTextures(this, initializationData);
 
+            for (const block of mergedAggregateBlocks) {
+                block.propagateRuntimeData();
+            }
             this.outputBlock.propagateRuntimeData();
 
             this._generateCommandsAndGatherInitPromises(initializationData);
@@ -196,7 +202,7 @@ export class SmartFilter {
      * Merges all aggregate blocks into the smart filter graph, executes the passed-in work, then restores the aggregate blocks.
      * @param work - The work to execute with the aggregate blocks merged
      */
-    public _workWithAggregateFreeGraph(work: () => void): void {
+    public _workWithAggregateFreeGraph(work: (mergedAggregateBlocks: AggregateBlock[]) => void): void {
         const mergedAggregateBlocks: AggregateBlock[] = [];
 
         // Merge all aggregate blocks
@@ -208,7 +214,7 @@ export class SmartFilter {
 
         try {
             // Do the passed in work
-            work();
+            work(mergedAggregateBlocks);
         } finally {
             // Restore all aggregate blocks, even if work throws
             for (const block of mergedAggregateBlocks) {

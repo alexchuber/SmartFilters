@@ -6,4 +6,6 @@ export enum ConnectionPointDirection {
     Input = 0,
     /** Output */
     Output = 1,
+    /** Reflective */
+    Reflective = 2,
 }

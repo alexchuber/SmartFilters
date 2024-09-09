@@ -1,7 +1,8 @@
-import type { ConnectionPoint } from "../connection/connectionPoint";
-import type { ConnectionPointType } from "../connection/connectionPointType";
+import { ConnectionPoint } from "../connection/connectionPoint.js";
+import { type ConnectionPointType } from "../connection/connectionPointType.js";
 
 import { BaseBlock } from "../blocks/baseBlock.js";
+import { ConnectionPointDirection } from "../connection/connectionPointDirection.js";
 
 /**
  * The aggregate block class is the base class for all blocks that be created from other blocks.
@@ -26,6 +27,38 @@ export abstract class AggregateBlock extends BaseBlock {
      * The list of relationships between the internal graph inputs and the outside ones.
      */
     private readonly _aggregatedInputs: [ConnectionPoint, ConnectionPoint][] = [];
+
+    // /**
+    //  * Visits the block and its inputs, including internal blocks and external connections.
+    //  * @param extraData - The extra data to pass to the callback
+    //  * @param callback - The callback to call on each block
+    //  * @param alreadyVisitedBlocks - Defines the set of blocks already visited (if not provided, a new set will be created)
+    //  */
+    // public override visit<T extends object>(
+    //     extraData: T,
+    //     callback: BlockVisitor<T>,
+    //     alreadyVisitedBlocks?: Set<BaseBlock>
+    // ): void {
+    //     if (!alreadyVisitedBlocks) {
+    //         alreadyVisitedBlocks = BaseBlock._alreadyVisitedBlocks;
+    //         alreadyVisitedBlocks.clear();
+    //     }
+
+    //     if (!alreadyVisitedBlocks.has(this)) {
+    //         alreadyVisitedBlocks.add(this);
+
+    //         // Visit entire subfilter
+    //         for (const [internalConnectionPoint] of this._aggregatedOutputs) {
+    //             const internalBlock = internalConnectionPoint.ownerBlock;
+    //             internalBlock.visit(extraData, callback, alreadyVisitedBlocks);
+    //         }
+
+    //         // Then continue visiting main SmartFilter
+    //         this._visitInputs(extraData, callback, alreadyVisitedBlocks);
+
+    //         callback(this, extraData);
+    //     }
+    // }
 
     /**
      * @internal
@@ -93,11 +126,19 @@ export abstract class AggregateBlock extends BaseBlock {
      * @param internalConnectionPoint - The input connection point in the inner graph to expose as an input on the aggregate block
      * @returns the connection point referencing the input block
      */
-    protected _registerSubfilterInput<U extends ConnectionPointType>(
+    protected _registerSubfilterInput(
         name: string,
-        internalConnectionPoint: ConnectionPoint<U>
-    ): ConnectionPoint<U> {
-        const externalInputConnectionPoint = this._registerInput(name, internalConnectionPoint.type);
+        internalConnectionPoint: ConnectionPoint<ConnectionPointType.Texture>
+    ): ConnectionPoint<ConnectionPointType.Texture> {
+        const externalInputConnectionPoint = new ConnectionPoint(
+            name,
+            this,
+            internalConnectionPoint.type,
+            ConnectionPointDirection.Reflective
+        );
+        this._inputs.push(externalInputConnectionPoint);
+
+        externalInputConnectionPoint.connectTo(internalConnectionPoint);
 
         this._aggregatedInputs.push([internalConnectionPoint, externalInputConnectionPoint]);
         return externalInputConnectionPoint;
@@ -109,11 +150,20 @@ export abstract class AggregateBlock extends BaseBlock {
      * @param internalConnectionPoint - The output connection point in the inner graph to expose as an output on the aggregate block
      * @returns the connection point referencing the output connection point
      */
-    protected _registerSubfilterOutput<U extends ConnectionPointType>(
+    protected _registerSubfilterOutput(
         name: string,
-        internalConnectionPoint: ConnectionPoint<U>
-    ): ConnectionPoint<U> {
-        const externalOutputConnectionPoint = this._registerOutput(name, internalConnectionPoint.type);
+        internalConnectionPoint: ConnectionPoint<ConnectionPointType.Texture>
+    ): ConnectionPoint<ConnectionPointType.Texture> {
+        const externalOutputConnectionPoint = new ConnectionPoint(
+            name,
+            this,
+            internalConnectionPoint.type,
+            ConnectionPointDirection.Reflective
+        );
+        this._outputs.push(externalOutputConnectionPoint);
+
+        internalConnectionPoint.connectTo(externalOutputConnectionPoint);
+        // externalOutputConnectionPoint.connectTo(internalConnectionPoint);
 
         this._aggregatedOutputs.push([internalConnectionPoint, externalOutputConnectionPoint]);
         return externalOutputConnectionPoint;

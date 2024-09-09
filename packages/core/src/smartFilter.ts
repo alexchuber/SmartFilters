@@ -167,16 +167,14 @@ export class SmartFilter {
             initializationPromises: [],
         };
 
-        this._workWithAggregateFreeGraph(() => {
-            this.outputBlock.prepareForRuntime();
+        this.outputBlock.prepareForRuntime();
 
-            renderTargetGenerator = renderTargetGenerator ?? new RenderTargetGenerator(false);
-            renderTargetGenerator.setOutputTextures(this, initializationData);
+        renderTargetGenerator = renderTargetGenerator ?? new RenderTargetGenerator(false);
+        renderTargetGenerator.setOutputTextures(this, initializationData);
 
-            this.outputBlock.propagateRuntimeData();
+        this.outputBlock.propagateRuntimeData();
 
-            this._generateCommandsAndGatherInitPromises(initializationData);
-        });
+        this._generateCommandsAndGatherInitPromises(initializationData);
 
         // Wait for all the blocks to be initialized
         if (initializationData.initializationPromises.length > 0) {

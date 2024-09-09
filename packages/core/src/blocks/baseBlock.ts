@@ -49,8 +49,8 @@ export abstract class BaseBlock implements ICommandOwner {
      */
     public comments: Nullable<string> = null;
 
-    private readonly _inputs: ConnectionPoint[] = [];
-    private readonly _outputs: ConnectionPoint[] = [];
+    protected readonly _inputs: ConnectionPoint[] = [];
+    protected readonly _outputs: ConnectionPoint[] = [];
 
     /**
      * Instantiates a new block.

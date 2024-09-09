@@ -125,7 +125,11 @@ export class ConnectionPoint<U extends ConnectionPointType = ConnectionPointType
         }
 
         // Check directions
-        if (this.direction === other.direction) {
+        if (
+            this.direction !== ConnectionPointDirection.Reflective &&
+            other.direction !== ConnectionPointDirection.Reflective &&
+            this.direction === other.direction
+        ) {
             return ConnectionPointCompatibilityState.DirectionIncompatible;
         }
 
@@ -152,6 +156,26 @@ export class ConnectionPoint<U extends ConnectionPointType = ConnectionPointType
      * @throws if the connection point cannot be connected to the other one
      */
     public connectTo(other: ConnectionPoint<U>): void {
+        // Case: reflective -> input
+        if (
+            this.direction === ConnectionPointDirection.Reflective &&
+            other.direction === ConnectionPointDirection.Input
+        ) {
+            this._endpoints.push(other);
+            other._connectedTo = this;
+            return;
+        }
+
+        // Case: output -> reflective
+        if (
+            this.direction === ConnectionPointDirection.Output &&
+            other.direction === ConnectionPointDirection.Reflective
+        ) {
+            other._endpoints.push(this);
+            this._connectedTo = other;
+            return;
+        }
+
         // Only connects output to input
         if (this.direction === ConnectionPointDirection.Input) {
             other.connectTo(this);

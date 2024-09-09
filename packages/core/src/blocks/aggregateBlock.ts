@@ -1,7 +1,7 @@
 import type { ConnectionPoint } from "../connection/connectionPoint";
 import type { ConnectionPointType } from "../connection/connectionPointType";
 
-import { BaseBlock } from "../blocks/baseBlock.js";
+import { BaseBlock, type BlockVisitor } from "../blocks/baseBlock.js";
 
 /**
  * The aggregate block class is the base class for all blocks that be created from other blocks.
@@ -26,6 +26,38 @@ export abstract class AggregateBlock extends BaseBlock {
      * The list of relationships between the internal graph inputs and the outside ones.
      */
     private readonly _aggregatedInputs: [ConnectionPoint, ConnectionPoint][] = [];
+
+    /**
+     * Visits the block and its inputs, including internal blocks and external connections.
+     * @param extraData - The extra data to pass to the callback
+     * @param callback - The callback to call on each block
+     * @param alreadyVisitedBlocks - Defines the set of blocks already visited (if not provided, a new set will be created)
+     */
+    public override visit<T extends object>(
+        extraData: T,
+        callback: BlockVisitor<T>,
+        alreadyVisitedBlocks?: Set<BaseBlock>
+    ): void {
+        if (!alreadyVisitedBlocks) {
+            alreadyVisitedBlocks = BaseBlock._alreadyVisitedBlocks;
+            alreadyVisitedBlocks.clear();
+        }
+
+        if (!alreadyVisitedBlocks.has(this)) {
+            alreadyVisitedBlocks.add(this);
+
+            // Visit entire subfilter
+            for (const [internalConnectionPoint] of this._aggregatedOutputs) {
+                const internalBlock = internalConnectionPoint.ownerBlock;
+                internalBlock.visit(extraData, callback, alreadyVisitedBlocks);
+            }
+
+            // Then continue visiting main SmartFilter
+            this._visitInputs(extraData, callback, alreadyVisitedBlocks);
+
+            callback(this, extraData);
+        }
+    }
 
     /**
      * @internal

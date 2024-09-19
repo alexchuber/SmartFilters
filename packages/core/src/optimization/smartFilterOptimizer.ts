@@ -13,7 +13,7 @@ import { decorateChar, decorateSymbol, getShaderFragmentCode, undecorateSymbol }
 import { DependencyGraph } from "./dependencyGraph.js";
 import { DisableableBlock } from "../blocks/disableableBlock.js";
 
-const showDebugData = false;
+const showDebugData = true;
 
 /**
  * @internal

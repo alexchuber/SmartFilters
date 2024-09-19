@@ -13,6 +13,7 @@ import { StringTools } from "@babylonjs/shared-ui-components/stringTools";
 import { additionalBlockSerializers, blocksUsingDefaultSerialization } from "../configuration/blockSerializers";
 import type { SmartFilterLoader } from "../smartFilterLoader";
 import { getSnippet, setSnippet } from "./hashFunctions";
+import { optimizeSmartFilter } from "./optimizeSmartFilter";
 
 /**
  * Launches the editor - in a separate file so it can be dynamically imported, since it brings in code which
@@ -63,9 +64,12 @@ export function launchEditor(
             blockRegistration,
             filter: currentSmartFilter,
             rebuildRuntime: (smartFilter: SmartFilter) => {
-                renderer.startRendering(smartFilter).catch((err: unknown) => {
-                    console.error("Could not start rendering", err);
-                });
+                const optimize = document.getElementById("optimize")! as HTMLInputElement;
+                renderer
+                    .startRendering(optimize.checked ? optimizeSmartFilter(smartFilter, engine) : smartFilter)
+                    .catch((err: unknown) => {
+                        console.error("Could not start rendering", err);
+                    });
             },
             reloadAssets: (smartFilter: SmartFilter) => {
                 renderer.loadAssets(smartFilter).catch((err: unknown) => {
@@ -85,7 +89,7 @@ export function launchEditor(
                 );
             },
             loadSmartFilter: async (file: File) => {
-                return smartFilterLoader.loadFromFile(file, false); // TODO: update optimize
+                return smartFilterLoader.loadFromFile(file);
             },
             saveToSnippetServer: async () => {
                 const serializer = new SmartFilterSerializer(

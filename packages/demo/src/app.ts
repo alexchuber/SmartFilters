@@ -2,7 +2,7 @@ import "@babylonjs/core/Engines/Extensions/engine.dynamicTexture";
 import "@babylonjs/core/Engines/Extensions/engine.videoTexture";
 import "@babylonjs/core/Engines/Extensions/engine.rawTexture";
 import "@babylonjs/core/Misc/fileTools";
-import { type SmartFilter } from "@babylonjs/smart-filters";
+import { /*SmartFilterOptimizer,*/ type SmartFilter } from "@babylonjs/smart-filters";
 import { SmartFilterRenderer } from "./smartFilterRenderer";
 import { SmartFilterEditor } from "@babylonjs/smart-filters-editor";
 import { createThinEngine } from "./helpers/createThinEngine";
@@ -11,13 +11,11 @@ import { smartFilterManifests } from "./configuration/smartFilters";
 import { getBlockDeserializers, inputBlockDeserializer } from "./configuration/blockDeserializers";
 import { getSnippet, setSnippet } from "./helpers/hashFunctions";
 import { TextureRenderHelper } from "./textureRenderHelper";
+import { optimizeSmartFilter } from "./helpers/optimizeSmartFilter";
 
 // Hardcoded options there is no UI for
 const useTextureAnalyzer: boolean = false;
 const renderToTextureInsteadOfCanvas: boolean = false;
-
-// TODO: add UI for toggling between regular and optimized graphs
-const optimize: boolean = false;
 
 // Constants
 const LocalStorageSmartFilterName = "SmartFilterName";
@@ -30,6 +28,7 @@ const inRepoFooter = document.getElementById("inRepoFooter")!;
 const snippetAndFileFooter = document.getElementById("snippetAndFileFooter")!;
 const sourceName = document.getElementById("sourceName")!;
 const version = document.getElementById("version")!;
+const optimize = document.getElementById("optimize")! as HTMLInputElement;
 
 // Create our services
 const engine = createThinEngine(canvas);
@@ -57,10 +56,16 @@ if (textureRenderHelper) {
 // Whenever a new SmartFilter is loaded, update currentSmartFilter and start rendering
 smartFilterLoader.onSmartFilterLoadedObservable.add((event: SmartFilterLoadedEvent) => {
     SmartFilterEditor.Hide();
+
     currentSmartFilter = event.smartFilter;
-    renderer.startRendering(currentSmartFilter, useTextureAnalyzer).catch((err: unknown) => {
-        console.error("Could not start rendering", err);
-    });
+    renderer
+        .startRendering(
+            optimize.checked ? optimizeSmartFilter(currentSmartFilter, engine) : currentSmartFilter,
+            useTextureAnalyzer
+        )
+        .catch((err: unknown) => {
+            console.error("Could not start rendering", err);
+        });
 
     // Ensure hash is empty if we're not loading from a snippet
     if (event.source !== SmartFilterSource.Snippet) {
@@ -103,11 +108,11 @@ async function checkHash() {
     if (snippetToken) {
         // Reset hash with our formatting to keep it looking consistent
         setSnippet(snippetToken, version, false);
-        smartFilterLoader.loadFromSnippet(snippetToken, version, optimize);
+        smartFilterLoader.loadFromSnippet(snippetToken, version);
     } else {
         const smartFilterName =
             localStorage.getItem(LocalStorageSmartFilterName) || smartFilterLoader.defaultSmartFilterName;
-        smartFilterLoader.loadFromManifest(smartFilterName, optimize);
+        smartFilterLoader.loadFromManifest(smartFilterName);
     }
 }
 
@@ -127,7 +132,7 @@ smartFilterLoader.manifests.forEach((manifest) => {
 // Set up SmartFilter <select> handler
 smartFilterSelect.addEventListener("change", () => {
     localStorage.setItem(LocalStorageSmartFilterName, smartFilterSelect.value);
-    smartFilterLoader.loadFromManifest(smartFilterSelect.value, optimize);
+    smartFilterLoader.loadFromManifest(smartFilterSelect.value);
 });
 
 // Set up editor button
@@ -144,4 +149,20 @@ fetch("./version.json").then((response: Response) => {
         const versionInfo = JSON.parse(text);
         version.textContent = versionInfo.versionToDisplay;
     });
+});
+
+// Rebuild the current SmartFilter with the new optimization setting
+optimize.addEventListener("change", () => {
+    if (!currentSmartFilter) {
+        return;
+    }
+
+    renderer
+        .startRendering(
+            optimize.checked ? optimizeSmartFilter(currentSmartFilter, engine) : currentSmartFilter,
+            useTextureAnalyzer
+        )
+        .catch((err: unknown) => {
+            console.error("Could not start rendering", err);
+        });
 });

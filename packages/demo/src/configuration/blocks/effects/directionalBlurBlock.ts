@@ -78,7 +78,7 @@ export class DirectionalBlurShaderBinding extends ShaderBinding {
      * Binds all the required data to the shader when rendering.
      * @param effect - defines the effect to bind the data to
      */
-    public override bind(effect: Effect): void {
+    public override bind(effect: Effect, _width: number, _height: number): void {
         super.bind(effect);
 
         // Global pass Setup
@@ -88,12 +88,10 @@ export class DirectionalBlurShaderBinding extends ShaderBinding {
         effect.setTexture(this.getRemappedName("input"), this._inputTexture.value);
 
         // Texel size
-        if (this._inputTexture.value) {
-            const inputSize = this._inputTexture.value.getSize();
-            const texelWidth = this._blurHorizontalWidth / inputSize.width;
-            const texelHeight = this._blurVerticalWidth / inputSize.height;
-            effect.setFloat2(this.getRemappedName("texelStep"), texelWidth, texelHeight);
-        }
+        const inputSize = this._inputTexture.value?.getSize();
+        const texelWidth = this._blurHorizontalWidth / (inputSize?.width ?? _width);
+        const texelHeight = this._blurVerticalWidth / (inputSize?.height ?? _height);
+        effect.setFloat2(this.getRemappedName("texelStep"), texelWidth, texelHeight);
     }
 }
 

@@ -1,4 +1,4 @@
-import { defaultBlockEditorRegistrations } from "../../defaults/defaultBlockEditorRegistrations";
+import { defaultBlockEditorRegistrations } from "./defaults/defaultBlockEditorRegistrations";
 import { BlackAndWhiteAndBlurBlock } from "../blocks/effects/blackAndWhiteAndBlurBlock";
 import { BlackAndWhiteBlock } from "../blocks/effects/blackAndWhiteBlock";
 import { BlurBlock } from "../blocks/effects/blurBlock";

@@ -1,4 +1,4 @@
-import type { IBlockEditorRegistration } from "../configuration/editor/IBlockEditorRegistration";
+import type { IBlockEditorRegistration } from "../IBlockEditorRegistration";
 
 export const defaultBlockEditorRegistrations: IBlockEditorRegistration[] = [
     {

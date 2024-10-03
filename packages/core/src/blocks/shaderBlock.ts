@@ -13,6 +13,26 @@ import { undecorateSymbol } from "../utils/shaderCodeUtils.js";
 import { getRenderTargetWrapper, registerFinalRenderCommand } from "../utils/renderTargetUtils.js";
 
 /**
+ * Defines requirements for a ShaderBlock's output texture.
+ * Can either use a ratio that scales the texture against the final output or a fixed height and width.
+ */
+export type TextureSizeRequirements =
+    | {
+          /** The type of the size requirements */
+          type: "dimensions";
+          /** The fixed width of the texture */
+          width: number;
+          /** The fixed height of the texture */
+          height: number;
+      }
+    | {
+          /** The type of the size requirements */
+          type: "ratio";
+          /** The ratio of the texture to create compared to the final output */
+          ratio: number;
+      };
+
+/**
  * This is the base class for all shader blocks.
  *
  * It contains the redundant part of wrapping a shader for a full screen pass.
@@ -42,20 +62,23 @@ export abstract class ShaderBlock extends DisableableBlock {
      */
     public readonly output = this._registerOutput("output", ConnectionPointType.Texture);
 
-    protected _textureRatio: number = 1;
+    protected _textureSizeRequirements: TextureSizeRequirements = {
+        type: "ratio",
+        ratio: 1,
+    };
 
     /**
      * Gets the texture ratio of the output texture.
      */
-    public get textureRatio() {
-        return this._textureRatio;
+    public get textureSizeRequirements() {
+        return this._textureSizeRequirements;
     }
 
     /**
      * Sets the texture ratio of the output texture.
      */
-    public set textureRatio(value: number) {
-        this._textureRatio = value;
+    public set textureSizeRequirements(value: TextureSizeRequirements) {
+        this._textureSizeRequirements = value;
     }
 
     /**

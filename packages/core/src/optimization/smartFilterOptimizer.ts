@@ -499,8 +499,8 @@ export class SmartFilterOptimizer {
             // Removes the vUV declaration if it exists
             code = code.replace(/varying\s+vec2\s+vUV\s*;/g, "");
 
-            // Replaces the texture2D calls by sampleTexture for easier processing
-            code = code.replace(/texture2D/g, "sampleTexture");
+            // Replaces texture2D or texture calls by sampleTexture for easier processing
+            code = code.replace(/\b(texture2D|texture)\s*\(/g, "sampleTexture(");
 
             // Processes the functions other than the main function
             code = this._processHelperFunctions(block, code);
